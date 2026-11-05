@@ -1,0 +1,23 @@
+package com.flowpilot.automation.triggers
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import com.flowpilot.automation.FlowPilotApp
+import com.flowpilot.automation.data.Trigger
+import com.flowpilot.automation.engine.RunLog
+import com.flowpilot.automation.service.AutomationService
+
+class BootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent?) {
+        if (intent?.action != Intent.ACTION_BOOT_COMPLETED &&
+            intent?.action != "android.intent.action.QUICKBOOT_POWERON"
+        ) return
+        RunLog.log("Boot completed — scheduling + boot triggers")
+        ScheduleHelper.rescheduleAll(context)
+        val apps = FlowPilotApp.instance.repository.automations.value
+        apps.filter { it.enabled && it.trigger is Trigger.Boot }.forEach {
+            AutomationService.start(context, it.id)
+        }
+    }
+}
