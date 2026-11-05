@@ -18,6 +18,15 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+
+    <!-- Needed on API 30+ to list launchable apps; harmless on API 29 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:name=".FlowPilotApp"
         android:allowBackup="true"
@@ -67,6 +76,22 @@
         <service
             android:name=".overlay.CoordPickerService"
             android:exported="false" />
+        <service
+            android:name=".overlay.ElementPickerService"
+            android:exported="false" />
+
+        <service
+            android:name=".overlay.ImageCropPickerService"
+            android:exported="false" />
+
+        <service
+            android:name=".overlay.SwipeRecorderService"
+            android:exported="false" />
+
+        <service
+            android:name=".overlay.RecordModeService"
+            android:exported="false" />
+
 
         <service
             android:name=".triggers.NotificationTriggerService"

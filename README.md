@@ -8,6 +8,10 @@ Visual Android automation builder inspired by WinAutomation, Tasker, and MacroDr
 
 FlowPilot is for **personal productivity automation**. You must follow the terms of service of any apps you automate. Do **not** use it to cheat in multiplayer games, hide the app, or evade detection by other apps. The authors are not responsible for misuse.
 
+## What's new in 0.2.0
+
+Major UX pass: searchable **app picker** (no typing package names), nested visual step builder with human-readable sentences, pick-from-screen tools (element / point / image crop / swipe), setup permission checklist, 12 ready-made templates, home-screen pin shortcuts, and a **partial** Record mode (taps, swipes, app opens — not typed text). Same debug keystore / `com.flowpilot.automation.debug` so it updates over 0.1.1.
+
 ## Install (sideload on Galaxy S9+)
 
 1. Copy `FlowPilot-debug.apk` to the phone (USB, Drive, etc.).
