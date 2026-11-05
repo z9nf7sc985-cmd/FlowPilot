@@ -8,6 +8,10 @@ Visual Android automation builder inspired by WinAutomation, Tasker, and MacroDr
 
 FlowPilot is for **personal productivity automation**. You must follow the terms of service of any apps you automate. Do **not** use it to cheat in multiplayer games, hide the app, or evade detection by other apps. The authors are not responsible for misuse.
 
+## What's new in 0.2.1
+
+Hardening for Galaxy S9+ / Android 10: editor refreshes after Add/Edit step, Run waits for save, schedule enable/disable arms AlarmManager correctly, Import/Export toasts, MediaProjection kept alive by a capture foreground service, one-tap battery-unrestricted prompt, image-matcher memory leak fixed. Same upload keystore as 0.2.0 (versionCode 4) — installs as an update.
+
 ## What's new in 0.2.0
 
 Major UX pass: searchable **app picker** (no typing package names), nested visual step builder with human-readable sentences, pick-from-screen tools (element / point / image crop / swipe), setup permission checklist, 12 ready-made templates, home-screen pin shortcuts, and a **partial** Record mode (taps, swipes, app opens — not typed text). Same debug keystore / `com.flowpilot.automation.debug` so it updates over 0.1.1.
@@ -46,7 +50,8 @@ Major UX pass: searchable **app picker** (no typing package names), nested visua
 - Image recognition: find template (pure-Kotlin NCC, downscaled), confidence + region + timeout, tap found image; in-app screenshot crop to save template
 - Logic: variables (`{{name}}`), set/math/string ops, If/ElseIf/Else, While, For, Break/Continue, Wait, random delay, Stop, Run automation, Try/On error, Log
 - Other: notification, toast, TTS, vibrate, play sound, HTTP GET/POST, read/write app files, SMS if permitted, launch intent
-- Foreground runner service with persistent notification + STOP; run log; step highlight; QS kill-switch tile; floating overlay; coordinate picker
+- Foreground runner service with persistent notification + STOP; MediaProjection capture foreground service; run log; step highlight; QS kill-switch tile; floating overlay; coordinate picker
+- Scheduling via **AlarmManager** (`setExactAndAllowWhileIdle`) for daily/interval triggers (WorkManager is on the classpath but not used for schedules)
 - 3 starter example automations
 - Unit tests for variables / conditions / serialization
 

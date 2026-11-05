@@ -57,59 +57,58 @@ jobs:
 
       - name: Package release assets
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk FlowPilot-v0.2.0.apk
-          cp FlowPilot-v0.2.0.apk FlowPilot-debug.apk
-          sha256sum FlowPilot-v0.2.0.apk | tee FlowPilot-v0.2.0.apk.sha256
+          cp app/build/outputs/apk/debug/app-debug.apk FlowPilot-v0.2.1.apk
+          cp FlowPilot-v0.2.1.apk FlowPilot-debug.apk
+          sha256sum FlowPilot-v0.2.1.apk | tee FlowPilot-v0.2.1.apk.sha256
           python3 - <<'PY'
           import zipfile
-          with zipfile.ZipFile('FlowPilot-v0.2.0.zip','w',zipfile.ZIP_DEFLATED) as z:
-              z.write('FlowPilot-v0.2.0.apk')
-              z.write('FlowPilot-v0.2.0.apk.sha256')
+          with zipfile.ZipFile('FlowPilot-v0.2.1.zip','w',zipfile.ZIP_DEFLATED) as z:
+              z.write('FlowPilot-v0.2.1.apk')
+              z.write('FlowPilot-v0.2.1.apk.sha256')
           print('zipped')
           PY
-          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose --min-sdk-version 23 FlowPilot-v0.2.0.apk | tee apksigner.txt
-          $ANDROID_HOME/build-tools/34.0.0/aapt dump badging FlowPilot-v0.2.0.apk | head -5 | tee badging.txt
+          $ANDROID_HOME/build-tools/34.0.0/apksigner verify --verbose --min-sdk-version 23 FlowPilot-v0.2.1.apk | tee apksigner.txt
+          $ANDROID_HOME/build-tools/34.0.0/aapt dump badging FlowPilot-v0.2.1.apk | head -5 | tee badging.txt
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: FlowPilot-debug
           path: |
-            FlowPilot-v0.2.0.apk
-            FlowPilot-v0.2.0.zip
-            FlowPilot-v0.2.0.apk.sha256
+            FlowPilot-v0.2.1.apk
+            FlowPilot-v0.2.1.zip
+            FlowPilot-v0.2.1.apk.sha256
           if-no-files-found: error
 
-      - name: Create GitHub Release v0.2.0
+      - name: Create GitHub Release v0.2.1
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.2.0
-          name: FlowPilot v0.2.0
+          tag_name: v0.2.1
+          name: FlowPilot v0.2.1
           body: |
-            Major UX pass — easy visual builder (no typing package names).
+            Hardening pass for Galaxy S9+ (Android 10) — fix broken wiring and MediaProjection reliability.
 
-            **Highlights**
-            - Searchable **app picker** with icons (open app / app-opened trigger)
-            - Nested visual step builder with human-readable sentences, Add step categories, undo delete
-            - Pick-from-screen: element, point (+%), image crop + test match, swipe recorder
-            - Setup **permission checklist** with one-tap settings + auto-refresh
-            - **12 templates** gallery · pin home-screen shortcuts · Run FAB
-            - Partial **Record mode** (taps/swipes/app opens; typed text not captured)
-            - Stable upload keystore so future updates install cleanly
-            - versionCode 3 / versionName 0.2.0 · `com.flowpilot.automation.debug` · minSdk 26 · targetSdk 29
+            **Fixes**
+            - Editor reloads after Add/Edit step (no more vanishing new steps)
+            - Run waits for save before starting (no race on new flows)
+            - Schedule enable/disable cancels or arms AlarmManager correctly; alarms respect enabled flag
+            - Import/Export JSON show success/error toasts; Export also on editor
+            - Screen capture starts a foreground service first (required for stable MediaProjection on API 29)
+            - Battery prompt uses one-tap REQUEST_IGNORE_BATTERY_OPTIMIZATIONS when possible
+            - Image matcher recycles cropped bitmaps (memory leak fix)
+            - More unit tests (region parse, BlockTree move, import id change)
 
-            **Upgrade from 0.1.1**
-            Uninstall 0.1.1 once first (its CI signing key was ephemeral and cannot be reused), then install this APK. Later 0.2.x updates will install over this build.
+            **Same signing key as v0.2.0** — installs as an update (versionCode 4 / 0.2.1-debug).
 
             **Install**
-            1. Download `FlowPilot-v0.2.0.apk` (or the zip) on the phone
-            2. Verify SHA-256 against `FlowPilot-v0.2.0.apk.sha256`
-            3. Enable Install unknown apps → open the APK
+            1. Download `FlowPilot-v0.2.1.apk` on the phone
+            2. Verify SHA-256 against `FlowPilot-v0.2.1.apk.sha256`
+            3. Open the APK (updates over 0.2.0; no uninstall needed)
           files: |
-            FlowPilot-v0.2.0.apk
-            FlowPilot-v0.2.0.zip
-            FlowPilot-v0.2.0.apk.sha256
+            FlowPilot-v0.2.1.apk
+            FlowPilot-v0.2.1.zip
+            FlowPilot-v0.2.1.apk.sha256
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -70,6 +70,10 @@
             android:exported="false" />
 
         <service
+            android:name=".service.ScreenCaptureService"
+            android:exported="false" />
+
+        <service
             android:name=".overlay.OverlayControlService"
             android:exported="false" />
 
