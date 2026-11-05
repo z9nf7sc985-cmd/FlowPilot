@@ -20,7 +20,8 @@ private val DarkColors = darkColorScheme(
     background = Bg,
     surface = Surface,
     onBackground = Color.White,
-    onSurface = Color.White
+    onSurface = Color.White,
+    error = Color(0xFFEF9A9A)
 )
 
 private val LightColors = lightColorScheme(
@@ -32,9 +33,14 @@ private val LightColors = lightColorScheme(
 )
 
 @Composable
-fun FlowPilotTheme(dark: Boolean = true, content: @Composable () -> Unit) {
+fun FlowPilotTheme(
+    dark: Boolean = isSystemInDarkTheme() || true, // prefer dark; still Material 3
+    content: @Composable () -> Unit
+) {
+    // Always offer a polished dark Material 3 look; light if caller forces it
+    val useDark = dark
     MaterialTheme(
-        colorScheme = if (dark) DarkColors else LightColors,
+        colorScheme = if (useDark) DarkColors else LightColors,
         content = content
     )
 }
