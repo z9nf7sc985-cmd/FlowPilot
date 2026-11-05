@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FlowPilot</string>
+    <string name="accessibility_service_description">FlowPilot uses Accessibility to tap, swipe, type, and read on-screen UI elements for the automations you create. It only acts when an automation is running.</string>
+    <string name="kill_switch_tile">FlowPilot Stop</string>
+    <string name="channel_runner">Automation runner</string>
+    <string name="channel_alerts">Automation alerts</string>
+</resources>
