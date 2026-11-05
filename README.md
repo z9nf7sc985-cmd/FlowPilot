@@ -75,3 +75,8 @@ See in-app **Add step** catalog. Placeholders like `{{foundX}}` expand from vari
 ## License
 
 MIT — use responsibly.
+
+
+## Troubleshooting: "There was a problem parsing the package"
+
+On Galaxy S9+ / Android 10 this usually means a corrupt download **or** an APK signed without a usable JAR (v1) signature / with API-34-only manifest bits. Use the [v0.1.1 release](https://github.com/z9nf7sc985-cmd/FlowPilot/releases/tag/v0.1.1) APK, verify the SHA-256, and install from the phone's Files app (not a renamed/incomplete transfer).
