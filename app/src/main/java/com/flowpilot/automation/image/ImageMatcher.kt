@@ -34,54 +34,57 @@ object ImageMatcher {
                     region.bottom - region.top
                 )
             } else screen
+            try {
+                val scale = min(1.0, maxDim.toDouble() / max(cropped.width, cropped.height))
+                val sw = max(1, (cropped.width * scale).toInt())
+                val sh = max(1, (cropped.height * scale).toInt())
+                val tw = max(1, (template.width * scale).toInt())
+                val th = max(1, (template.height * scale).toInt())
+                if (tw >= sw || th >= sh) return null
 
-            val scale = min(1.0, maxDim.toDouble() / max(cropped.width, cropped.height))
-            val sw = max(1, (cropped.width * scale).toInt())
-            val sh = max(1, (cropped.height * scale).toInt())
-            val tw = max(1, (template.width * scale).toInt())
-            val th = max(1, (template.height * scale).toInt())
-            if (tw >= sw || th >= sh) return null
+                val sGray = toGray(cropped, sw, sh)
+                val tGray = toGray(template, tw, th)
 
-            val sGray = toGray(cropped, sw, sh)
-            val tGray = toGray(template, tw, th)
-
-            var best = -1.0
-            var bestX = 0
-            var bestY = 0
-            val step = max(1, min(tw, th) / 8)
-            for (y in 0..(sh - th) step step) {
-                for (x in 0..(sw - tw) step step) {
-                    val score = ncc(sGray, sw, sh, tGray, tw, th, x, y)
-                    if (score > best) {
-                        best = score
-                        bestX = x
-                        bestY = y
+                var best = -1.0
+                var bestX = 0
+                var bestY = 0
+                val step = max(1, min(tw, th) / 8)
+                for (y in 0..(sh - th) step step) {
+                    for (x in 0..(sw - tw) step step) {
+                        val score = ncc(sGray, sw, sh, tGray, tw, th, x, y)
+                        if (score > best) {
+                            best = score
+                            bestX = x
+                            bestY = y
+                        }
                     }
                 }
-            }
-            // Refine around best
-            val refine = step
-            for (y in max(0, bestY - refine)..min(sh - th, bestY + refine)) {
-                for (x in max(0, bestX - refine)..min(sw - tw, bestX + refine)) {
-                    val score = ncc(sGray, sw, sh, tGray, tw, th, x, y)
-                    if (score > best) {
-                        best = score
-                        bestX = x
-                        bestY = y
+                // Refine around best
+                val refine = step
+                for (y in max(0, bestY - refine)..min(sh - th, bestY + refine)) {
+                    for (x in max(0, bestX - refine)..min(sw - tw, bestX + refine)) {
+                        val score = ncc(sGray, sw, sh, tGray, tw, th, x, y)
+                        if (score > best) {
+                            best = score
+                            bestX = x
+                            bestY = y
+                        }
                     }
                 }
-            }
 
-            if (best < threshold) return null
-            val absX = ((bestX + tw / 2.0) / scale).toInt() + (region?.left ?: 0)
-            val absY = ((bestY + th / 2.0) / scale).toInt() + (region?.top ?: 0)
-            return Triple(absX, absY, best)
+                if (best < threshold) return null
+                val absX = ((bestX + tw / 2.0) / scale).toInt() + (region?.left ?: 0)
+                val absY = ((bestY + th / 2.0) / scale).toInt() + (region?.top ?: 0)
+                return Triple(absX, absY, best)
+            } finally {
+                if (cropped !== screen) cropped.recycle()
+            }
         } finally {
             template.recycle()
         }
     }
 
-    private fun parseRegion(spec: String, w: Int, h: Int): Region? {
+    fun parseRegion(spec: String, w: Int, h: Int): Region? {
         if (spec.isBlank()) return null
         val p = spec.split(",").map { it.trim().toIntOrNull() }
         if (p.size != 4 || p.any { it == null }) return null

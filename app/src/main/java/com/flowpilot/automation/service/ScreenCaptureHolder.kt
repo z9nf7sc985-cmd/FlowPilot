@@ -31,7 +31,10 @@ object ScreenCaptureHolder {
     fun hasProjection(): Boolean = projection != null
 
     fun start(context: Context, resultCode: Int, data: Intent) {
-        stop()
+        // Android 10: start a foreground service first so MediaProjection stays valid
+        // when the activity goes to the background.
+        ScreenCaptureService.start(context)
+        stopProjectionOnly()
         val mpm = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         projection = mpm.getMediaProjection(resultCode, data)
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -74,12 +77,19 @@ object ScreenCaptureHolder {
     }
 
     fun stop() {
+        stopProjectionOnly()
+    }
+
+    /** Release projection resources without touching the capture FGS. */
+    fun stopProjectionOnly() {
         virtualDisplay?.release()
         virtualDisplay = null
         reader?.close()
         reader = null
         projection?.stop()
         projection = null
+        latestBitmap?.recycle()
+        latestBitmap = null
     }
 
     fun createPermissionIntent(context: Context): Intent {
