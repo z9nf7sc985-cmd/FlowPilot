@@ -83,6 +83,13 @@ class FlowEngine(
         vars.setText("time", java.text.SimpleDateFormat("HH:mm", Locale.US).format(java.util.Date()))
         vars.setNumber("hour", java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY).toDouble())
         vars.setNumber("minute", java.util.Calendar.getInstance().get(java.util.Calendar.MINUTE).toDouble())
+        try {
+            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = cm.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()
+            vars.setText("clipboard", clip)
+        } catch (_: Exception) {
+            vars.setText("clipboard", "")
+        }
     }
 
     private suspend fun runBlocks(blocks: List<Block>): FlowSignal? {
@@ -98,6 +105,10 @@ class FlowEngine(
     }
 
     private suspend fun runBlock(block: Block): FlowSignal? {
+        if (block.paramBool("__disabled", false)) {
+            RunLog.log("Skipped (disabled)", blockId = block.id, automationId = automation.id)
+            return null
+        }
         RunLog.setCurrentBlock(block.id)
         val a11y = FlowAccessibilityService.instance
         when (block.type) {
