@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.flowpilot.automation.FlowPilotApp
 import com.flowpilot.automation.data.Trigger
 import com.flowpilot.automation.service.AutomationService
+import com.flowpilot.automation.triggers.ScheduleHelper
+import android.widget.Toast
 import com.flowpilot.automation.util.AppPicker
 import com.flowpilot.automation.util.ShortcutHelper
 import kotlinx.coroutines.launch
@@ -115,7 +117,14 @@ fun HomeScreen(
                                 Switch(
                                     checked = a.enabled,
                                     onCheckedChange = { en ->
-                                        scope.launch { repo.save(a.copy(enabled = en)) }
+                                        scope.launch {
+                                            val updated = a.copy(enabled = en)
+                                            repo.save(updated)
+                                            if (updated.trigger is Trigger.Schedule) {
+                                                if (en) ScheduleHelper.scheduleOne(context, updated.id)
+                                                else ScheduleHelper.cancel(context, updated.id)
+                                            }
+                                        }
                                     }
                                 )
                                 IconButton(onClick = {
@@ -157,6 +166,9 @@ fun HomeScreen(
                                                     val cm = FlowPilotApp.instance.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
                                                         as android.content.ClipboardManager
                                                     cm.setPrimaryClip(android.content.ClipData.newPlainText("automation", json))
+                                                    Toast.makeText(context, "JSON copied to clipboard", Toast.LENGTH_SHORT).show()
+                                                } else {
+                                                    Toast.makeText(context, "Export failed", Toast.LENGTH_SHORT).show()
                                                 }
                                             }
                                         )
@@ -164,7 +176,12 @@ fun HomeScreen(
                                             text = { Text("Delete") },
                                             onClick = {
                                                 menuFor = null
-                                                scope.launch { repo.delete(a.id) }
+                                                scope.launch {
+                                                    if (a.trigger is Trigger.Schedule) {
+                                                        ScheduleHelper.cancel(context, a.id)
+                                                    }
+                                                    repo.delete(a.id)
+                                                }
                                             }
                                         )
                                     }

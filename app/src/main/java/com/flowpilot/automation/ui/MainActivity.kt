@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -162,7 +163,19 @@ class MainActivity : ComponentActivity() {
                                     mediaProjectionLauncher.launch(ScreenCaptureHolder.createPermissionIntent(this@MainActivity))
                                 },
                                 onRequestBattery = {
-                                    startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                    val pm = getSystemService(PowerManager::class.java)
+                                    if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
+                                        try {
+                                            startActivity(
+                                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                                                    .setData(Uri.parse("package:$packageName"))
+                                            )
+                                        } catch (_: Exception) {
+                                            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                        }
+                                    } else {
+                                        startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                    }
                                 },
                                 onTemplates = { nav.navigate("templates") },
                                 onGallery = { nav.navigate("gallery") },
@@ -190,7 +203,19 @@ class MainActivity : ComponentActivity() {
                                     mediaProjectionLauncher.launch(ScreenCaptureHolder.createPermissionIntent(this@MainActivity))
                                 },
                                 onOpenBattery = {
-                                    startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                    val pm = getSystemService(PowerManager::class.java)
+                                    if (pm != null && !pm.isIgnoringBatteryOptimizations(packageName)) {
+                                        try {
+                                            startActivity(
+                                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                                                    .setData(Uri.parse("package:$packageName"))
+                                            )
+                                        } catch (_: Exception) {
+                                            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                        }
+                                    } else {
+                                        startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                    }
                                 },
                                 onOpenNotifications = {
                                     if (Build.VERSION.SDK_INT >= 33) {

@@ -15,6 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
 import com.flowpilot.automation.FlowPilotApp
 import com.flowpilot.automation.data.*
@@ -52,6 +55,22 @@ fun EditorScreen(
     val snackbarHost = remember { SnackbarHostState() }
     var undoBlock by remember { mutableStateOf<Pair<List<Block>, Block>?>(null) }
 
+    // Reload from disk when returning from Add/Edit step screens
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, automationId) {
+        val obs = LifecycleEventObserver { _, e ->
+            if (e == Lifecycle.Event.ON_RESUME) {
+                // Use automation.id so newly created flows (route still "new") also refresh
+                repo.get(automation.id)?.let {
+                    automation = it
+                    name = it.name
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+    }
+
     fun persist(local: Automation = automation.copy(name = name)) {
         scope.launch {
             repo.save(local)
@@ -84,8 +103,15 @@ fun EditorScreen(
                         Toast.makeText(context, "Recording… use the red bar to stop", Toast.LENGTH_SHORT).show()
                     }) { Icon(Icons.Default.FiberManualRecord, "Record") }
                     IconButton(onClick = {
-                        persist()
-                        AutomationService.start(FlowPilotApp.instance, automation.id)
+                        scope.launch {
+                            val saved = automation.copy(name = name)
+                            repo.save(saved)
+                            automation = saved
+                            if (saved.trigger is Trigger.Schedule) {
+                                ScheduleHelper.scheduleOne(FlowPilotApp.instance, saved.id)
+                            }
+                            AutomationService.start(FlowPilotApp.instance, saved.id)
+                        }
                     }) { Icon(Icons.Default.PlayArrow, "Run") }
                     IconButton(onClick = {
                         scope.launch {
@@ -134,6 +160,20 @@ fun EditorScreen(
                 TextButton(onClick = {
                     ShortcutHelper.pinRunShortcut(context, automation.copy(name = name))
                 }) { Text("Pin shortcut") }
+                TextButton(onClick = {
+                    scope.launch {
+                        val saved = automation.copy(name = name)
+                        repo.save(saved)
+                        automation = saved
+                        val json = repo.exportJson(saved.id)
+                        if (json != null) {
+                            val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                                as android.content.ClipboardManager
+                            cm.setPrimaryClip(android.content.ClipData.newPlainText("automation", json))
+                            Toast.makeText(context, "JSON copied to clipboard", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }) { Text("Export JSON") }
             }
             Spacer(Modifier.height(8.dp))
             Text("Steps", style = MaterialTheme.typography.titleSmall)

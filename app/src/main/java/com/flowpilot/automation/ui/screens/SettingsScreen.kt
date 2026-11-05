@@ -21,6 +21,8 @@ import com.flowpilot.automation.overlay.OverlayControlService
 import com.flowpilot.automation.overlay.RecordModeService
 import com.flowpilot.automation.overlay.SwipeRecorderService
 import com.flowpilot.automation.service.ScreenCaptureHolder
+import com.flowpilot.automation.service.ScreenCaptureService
+import android.widget.Toast
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +68,12 @@ fun SettingsScreen(
             StatusRow("Accessibility service", a11yOn, onRequestAccessibility)
             StatusRow("Display over other apps", overlayOn, onRequestOverlay)
             StatusRow("Screen capture (API 29 images)", captureOn, onRequestCapture)
+            if (captureOn) {
+                TextButton(
+                    onClick = { ScreenCaptureService.stop(context) },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Stop screen capture") }
+            }
             Button(onClick = onRequestBattery, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 Text("Battery optimization (set Unrestricted)")
             }
@@ -116,9 +124,20 @@ fun SettingsScreen(
                 )
                 Button(onClick = {
                     scope.launch {
-                        runCatching { FlowPilotApp.instance.repository.importJson(importText) }
-                        showImport = false
-                        importText = ""
+                        val result = runCatching {
+                            FlowPilotApp.instance.repository.importJson(importText)
+                        }
+                        result.onSuccess {
+                            Toast.makeText(context, "Imported: ${it.name}", Toast.LENGTH_SHORT).show()
+                            showImport = false
+                            importText = ""
+                        }.onFailure { e ->
+                            Toast.makeText(
+                                context,
+                                "Import failed: ${e.message ?: "invalid JSON"}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }) { Text("Import") }
             }
